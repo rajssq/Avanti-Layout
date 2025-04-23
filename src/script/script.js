@@ -1,319 +1,208 @@
-const searchInput = document.getElementById("searchInput");
-const searchButton = document.getElementById("searchButton");
-const searchMessage = document.getElementById("searchMessage");
-
-const searchFunction = () => {
-  const term = searchInput.value.trim();
-  if (term) {
-    const spanTerm = document.createElement("span");
-    spanTerm.textContent = `${term}`;
-    spanTerm.className = "text-blue";
-
-    searchMessage.innerHTML = "Você buscou por: ";
-    searchMessage.appendChild(spanTerm);
-  } else {
-    searchMessage.textContent = "";
-  }
-};
-
-searchButton.addEventListener("click", searchFunction);
-
-searchInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    searchFunction();
-  }
-});
-
 document.addEventListener("DOMContentLoaded", () => {
+  // Busca
+  const searchInput = document.getElementById("searchInput");
+  const searchButton = document.getElementById("searchButton");
+  const searchMessage = document.getElementById("searchMessage");
+
+  const showSearchMessage = (term) => {
+    searchMessage.innerHTML = "Você buscou por: ";
+    const spanTerm = document.createElement("span");
+    spanTerm.textContent = term;
+    spanTerm.className = "text-blue";
+    searchMessage.appendChild(spanTerm);
+  };
+
+  const handleSearch = () => {
+    const term = searchInput.value.trim();
+    searchMessage.textContent = term ? "" : searchMessage.textContent;
+    term && showSearchMessage(term);
+  };
+
+  searchButton.addEventListener("click", handleSearch);
+  searchInput.addEventListener("keydown", (e) => e.key === "Enter" && handleSearch());
+
+  // Carrossel
   const productContainers = document.querySelectorAll(".product-container");
 
-  function getCardsToShow() {
-    const screenWidth = window.innerWidth;
-    return screenWidth >= 1280 ? 5 : 2;
-  }
+  const getCardsToShow = () => (window.innerWidth >= 1280 ? 5 : 2);
 
-  function setupCardEvents(card) {
-    const buttonBuy = card.querySelector(".buttonBuy");
-    const buttonQuantity = card.querySelector(".buttonQuantity");
-    const buttonAdd = card.querySelector(".buttonAdd");
-    const buttonRemove = card.querySelector(".buttonRemove");
-    const quantity = card.querySelector(".quantity");
+  const setupCardEvents = (card) => {
+    const selectors = [".buttonBuy", ".buttonQuantity", ".buttonAdd", ".buttonRemove", ".quantity"];
+    const [buttonBuy, buttonQuantity, buttonAdd, buttonRemove, quantity] = selectors.map(sel => card.querySelector(sel));
 
     buttonBuy.classList.remove("hidden");
-    buttonQuantity.classList.add("hidden");
-    buttonQuantity.classList.remove("flex");
+    buttonQuantity.classList.replace("flex", "hidden");
     quantity.textContent = "1";
 
     buttonBuy.onclick = () => {
       buttonBuy.classList.add("hidden");
-      buttonQuantity.classList.remove("hidden");
-      buttonQuantity.classList.add("flex");
+      buttonQuantity.classList.replace("hidden", "flex");
     };
 
-    buttonAdd.onclick = () => {
-      const currentQuantity = parseInt(quantity.textContent, 10);
-      quantity.textContent = currentQuantity + 1;
-    };
-
+    buttonAdd.onclick = () => quantity.textContent = parseInt(quantity.textContent) + 1;
     buttonRemove.onclick = () => {
-      const currentQuantity = parseInt(quantity.textContent, 10);
-      if (currentQuantity > 1) {
-        quantity.textContent = currentQuantity - 1;
-      }
+      const current = parseInt(quantity.textContent);
+      quantity.textContent = current > 1 ? current - 1 : current;
     };
-  }
+  };
 
-  function renderProducts(container) {
+  const renderProducts = (container) => {
     const cards = container.querySelectorAll(".product-card");
-    const cardsToShow = getCardsToShow();
     const baseCard = cards[0];
+    const cardsToShow = getCardsToShow();
 
-    for (let i = 1; i < cards.length; i++) {
-      cards[i].remove();
-    }
+    cards.forEach((card, i) => i && card.remove());
 
     for (let i = 1; i < cardsToShow; i++) {
       const clone = baseCard.cloneNode(true);
       setupCardEvents(clone);
       container.appendChild(clone);
     }
-  }
+  };
 
-  function renderAllProductContainers() {
-    productContainers.forEach((container) => renderProducts(container));
-  }
+  const renderAllProductContainers = () => productContainers.forEach(renderProducts);
 
-  renderAllProductContainers();
-
-  window.addEventListener("resize", () => {
-    clearTimeout(window.resizeTimer);
-    window.resizeTimer = setTimeout(() => {
-      renderAllProductContainers();
-    }, 200);
-  });
-
-  productContainers.forEach((container) => {
-    const prevButton = container.querySelector('[data-action="prev"]');
-    const nextButton = container.querySelector('[data-action="next"]');
+  const initSlider = (container) => {
+    const prev = container.querySelector('[data-action="prev"]');
+    const next = container.querySelector('[data-action="next"]');
     const dots = container.parentElement.querySelectorAll("[data-slide]");
-    let currentSlide = 0;
-    const totalSlides = dots.length;
+    let current = 0;
+    const total = dots.length;
 
-    function getCardsToShow() {
-      return window.innerWidth >= 1280 ? 5 : 2;
-    }
-
-    function renderSlide(index) {
+    const renderSlide = (index) => {
       const cards = container.querySelectorAll(".product-card");
-      const cardsToShow = getCardsToShow();
       const baseCard = cards[0];
+      const cardsToShow = getCardsToShow();
 
       setupCardEvents(baseCard);
-
       container.classList.add("fade-out");
 
       setTimeout(() => {
-        for (let i = 1; i < cards.length; i++) {
-          cards[i].remove();
-        }
-
+        cards.forEach((card, i) => i && card.remove());
         for (let i = 1; i < cardsToShow; i++) {
           const clone = baseCard.cloneNode(true);
           setupCardEvents(clone);
           container.appendChild(clone);
         }
-
-        container.classList.remove("fade-out");
-        container.classList.add("fade-in");
-
-        setTimeout(() => {
-          container.classList.remove("fade-in");
-        }, 300);
+        container.classList.replace("fade-out", "fade-in");
+        setTimeout(() => container.classList.remove("fade-in"), 300);
       }, 300);
 
       dots.forEach((dot, i) => {
         dot.classList.toggle("bg-gray-darkness", i === index);
         dot.classList.toggle("bg-gray-medium", i !== index);
       });
-    }
+    };
 
-    prevButton?.addEventListener("click", () => {
-      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-      renderSlide(currentSlide);
-    });
-
-    nextButton?.addEventListener("click", () => {
-      currentSlide = (currentSlide + 1) % totalSlides;
-      renderSlide(currentSlide);
-    });
-
-    dots.forEach((dot, i) => {
-      dot.addEventListener("click", () => {
-        currentSlide = i;
-        renderSlide(currentSlide);
-      });
-    });
+    prev?.addEventListener("click", () => renderSlide((current = (current - 1 + total) % total)));
+    next?.addEventListener("click", () => renderSlide((current = (current + 1) % total)));
+    dots.forEach((dot, i) => dot.addEventListener("click", () => renderSlide((current = i))));
 
     let touchStartX = 0;
-    let touchEndX = 0;
-    const swipeThreshold = 50;
-
-    container.addEventListener("touchstart", (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    });
-
+    container.addEventListener("touchstart", (e) => (touchStartX = e.changedTouches[0].screenX));
     container.addEventListener("touchend", (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
+      const deltaX = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(deltaX) > 50 && window.innerWidth < 1280) {
+        renderSlide((current = (current + (deltaX < 0 ? 1 : -1) + total) % total));
+      }
     });
 
-    function handleSwipe() {
-      const isSmallScreen = window.innerWidth < 1280;
-      if (!isSmallScreen) return;
+    renderSlide(current);
+  };
 
-      const deltaX = touchEndX - touchStartX;
-      if (Math.abs(deltaX) > swipeThreshold) {
-        if (deltaX < 0) {
-          currentSlide = (currentSlide + 1) % totalSlides;
-        } else {
-          currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-        }
-        renderSlide(currentSlide);
+  renderAllProductContainers();
+  productContainers.forEach(initSlider);
+
+  window.addEventListener("resize", () => {
+    clearTimeout(window.resizeTimer);
+    window.resizeTimer = setTimeout(renderAllProductContainers, 200);
+  });
+
+  document.querySelectorAll(".product-card").forEach(setupCardEvents);
+
+  // Formulário
+  const form = document.querySelector("form");
+  const [inputName, inputEmail, inputCheckbox] = ["#inputName", "#inputEmail", "#inputCheckbox"]
+    .map((id) => document.querySelector(id));
+  const errorName = inputName.nextElementSibling;
+  const errorEmail = inputEmail.nextElementSibling;
+  const errorCheckbox = inputCheckbox.closest("div").querySelector("p");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    let valid = true;
+
+    const validateField = (input, error, condition) => {
+      if (condition) {
+        input.classList.add("border", "border-red-500");
+        error.classList.remove("hidden");
+        valid = false;
+      } else {
+        input.classList.remove("border", "border-red-500");
+        error.classList.add("hidden");
       }
-    }
+    };
 
-    renderSlide(currentSlide);
-  });
+    validateField(inputName, errorName, !inputName.value.trim());
+    validateField(inputEmail, errorEmail, !inputEmail.value.trim() || !inputEmail.checkValidity());
 
-  const productSections = document.querySelectorAll(".product-section");
-  productSections.forEach((section) => {
-    setupCardEvents(section);
-  });
-});
-
-const inputName = document.getElementById("inputName");
-const inputEmail = document.getElementById("inputEmail");
-const inputCheckbox = document.getElementById("inputCheckbox");
-
-const errorName = inputName.nextElementSibling;
-const errorEmail = inputEmail.nextElementSibling;
-const errorCheckbox = inputCheckbox.closest("div").querySelector("p");
-
-const form = document.querySelector("form");
-
-form.addEventListener("submit", function (e) {
-  e.preventDefault();
-
-  let valid = true;
-
-  if (inputName.value.trim() === "") {
-    inputName.classList.add("border", "border-red-500");
-    errorName.classList.remove("hidden");
-    valid = false;
-  } else {
-    inputName.classList.remove("border", "border-red-500");
-    errorName.classList.add("hidden");
-  }
-
-  if (inputEmail.value.trim() === "" || !inputEmail.checkValidity()) {
-    inputEmail.classList.add("border", "border-red-500");
-    errorEmail.classList.remove("hidden");
-    valid = false;
-  } else {
-    inputEmail.classList.remove("border", "border-red-500");
-    errorEmail.classList.add("hidden");
-  }
-
-  if (!inputCheckbox.checked) {
-    errorCheckbox.classList.remove("hidden");
-    valid = false;
-  } else {
-    errorCheckbox.classList.add("hidden");
-  }
-
-  if (valid) {
-    alert("Cadastro realizado com sucesso!");
-    form.reset();
-    inputName.classList.remove("border", "border-red-500");
-    inputEmail.classList.remove("border", "border-red-500");
-  }
-});
-
-const buttonInstitutional = document.getElementById("buttonInstitutional");
-const buttonFAQ = document.getElementById("buttonFAQ");
-const buttonContacts = document.getElementById("buttonContacts");
-const institutional = document.getElementById("institutional");
-const faq = document.getElementById("faq");
-const contacts = document.getElementById("contacts");
-
-const institutionalArrow = buttonInstitutional.querySelector(".arrow");
-const faqArrow = buttonFAQ.querySelector(".arrow");
-const contactsArrow = buttonContacts.querySelector(".arrow");
-
-function toggleVisibility(button, list, arrow) {
-  if (window.innerWidth < 1280) {
-    const isListVisible = list.style.display === "block";
-
-    institutional.style.display = "none";
-    faq.style.display = "none";
-    contacts.style.display = "none";
-
-    institutionalArrow.style.transform = "rotate(0deg)";
-    faqArrow.style.transform = "rotate(0deg)";
-    contactsArrow.style.transform = "rotate(0deg)";
-
-    if (!isListVisible) {
-      list.style.display = "block";
-      arrow.style.transform = "rotate(180deg)";
+    if (!inputCheckbox.checked) {
+      errorCheckbox.classList.remove("hidden");
+      valid = false;
     } else {
-      list.style.display = "none";
+      errorCheckbox.classList.add("hidden");
     }
-  }
-}
 
-buttonInstitutional.addEventListener("click", () =>
-  toggleVisibility(buttonInstitutional, institutional, institutionalArrow)
-);
-buttonFAQ.addEventListener("click", () =>
-  toggleVisibility(buttonFAQ, faq, faqArrow)
-);
-buttonContacts.addEventListener("click", () =>
-  toggleVisibility(buttonContacts, contacts, contactsArrow)
-);
+    if (valid) {
+      alert("Cadastro realizado com sucesso!");
+      form.reset();
+    }
+  });
 
-window.addEventListener("resize", () => {
-  if (window.innerWidth >= 1280) {
-    institutional.style.display = "block";
-    faq.style.display = "block";
-    contacts.style.display = "block";
+  // Menus institucionais
+  const menuToggles = [
+    ["#buttonInstitutional", "#institutional"],
+    ["#buttonFAQ", "#faq"],
+    ["#buttonContacts", "#contacts"],
+  ];
 
-    institutionalArrow.style.transform = "rotate(0deg)";
-    faqArrow.style.transform = "rotate(0deg)";
-    contactsArrow.style.transform = "rotate(0deg)";
-  } else {
-    institutional.style.display = "none";
-    faq.style.display = "none";
-    contacts.style.display = "none";
+  const toggleMenus = () => {
+    const visible = window.innerWidth >= 1280;
+    menuToggles.forEach(([, id]) => {
+      document.querySelector(id).style.display = visible ? "block" : "none";
+    });
+    document.querySelectorAll(".arrow").forEach(el => (el.style.transform = "rotate(0deg)"));
+  };
 
-    institutionalArrow.style.transform = "rotate(0deg)";
-    faqArrow.style.transform = "rotate(0deg)";
-    contactsArrow.style.transform = "rotate(0deg)";
-  }
-});
+  menuToggles.forEach(([btnId, contentId]) => {
+    const btn = document.querySelector(btnId);
+    const content = document.querySelector(contentId);
+    const arrow = btn.querySelector(".arrow");
 
-const scrollToTopButton = document.getElementById("scrollToTopButton");
+    btn.addEventListener("click", () => {
+      if (window.innerWidth < 1280) {
+        const isVisible = content.style.display === "block";
+        toggleMenus();
+        if (!isVisible) {
+          content.style.display = "block";
+          arrow.style.transform = "rotate(180deg)";
+        }
+      }
+    });
+  });
 
-scrollToTopButton.addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
+  window.addEventListener("resize", toggleMenus);
+  toggleMenus();
 
-window.addEventListener("scroll", () => {
-  if (
-    document.body.scrollTop > 200 ||
-    document.documentElement.scrollTop > 200
-  ) {
-    scrollToTopButton.classList.remove("hidden");
-  } else {
-    scrollToTopButton.classList.add("hidden");
-  }
+  // Scroll to top
+  const scrollToTopButton = document.getElementById("scrollToTopButton");
+
+  scrollToTopButton.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  window.addEventListener("scroll", () => {
+    const visible = window.scrollY > 200;
+    scrollToTopButton.classList.toggle("hidden", !visible);
+  });
 });
