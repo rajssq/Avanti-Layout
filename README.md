@@ -2,6 +2,8 @@
 
 Este projeto foi desenvolvido como parte de um teste técnico com o objetivo de recriar um layout fornecido no Figma, utilizando **HTML**, **CSS** e **JavaScript**.
 
+💻 Projeto disponível: [Ver projeto](https://rajssq.github.io/Avanti-Layout/)
+
 ![Demonstração do Projeto](./src/images/demo-desktop.gif)
 
 ## 📝 Objetivo
