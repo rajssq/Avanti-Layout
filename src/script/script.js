@@ -19,7 +19,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   searchButton.addEventListener("click", handleSearch);
-  searchInput.addEventListener("keydown", (e) => e.key === "Enter" && handleSearch());
+  searchInput.addEventListener(
+    "keydown",
+    (e) => e.key === "Enter" && handleSearch()
+  );
 
   // Carrossel
   const productContainers = document.querySelectorAll(".product-container");
@@ -27,8 +30,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const getCardsToShow = () => (window.innerWidth >= 1280 ? 5 : 2);
 
   const setupCardEvents = (card) => {
-    const selectors = [".buttonBuy", ".buttonQuantity", ".buttonAdd", ".buttonRemove", ".quantity"];
-    const [buttonBuy, buttonQuantity, buttonAdd, buttonRemove, quantity] = selectors.map(sel => card.querySelector(sel));
+    const selectors = [
+      ".buttonBuy",
+      ".buttonQuantity",
+      ".buttonAdd",
+      ".buttonRemove",
+      ".quantity",
+    ];
+    const [buttonBuy, buttonQuantity, buttonAdd, buttonRemove, quantity] =
+      selectors.map((sel) => card.querySelector(sel));
 
     buttonBuy.classList.remove("hidden");
     buttonQuantity.classList.replace("flex", "hidden");
@@ -39,10 +49,17 @@ document.addEventListener("DOMContentLoaded", () => {
       buttonQuantity.classList.replace("hidden", "flex");
     };
 
-    buttonAdd.onclick = () => quantity.textContent = parseInt(quantity.textContent) + 1;
+    buttonAdd.onclick = () =>
+      (quantity.textContent = parseInt(quantity.textContent) + 1);
     buttonRemove.onclick = () => {
-      const current = parseInt(quantity.textContent);
-      quantity.textContent = current > 1 ? current - 1 : current;
+      let current = parseInt(quantity.textContent);
+      if (current > 1) {
+        quantity.textContent = current - 1;
+      } else {
+        buttonBuy.classList.remove("hidden");
+        buttonQuantity.classList.replace("flex", "hidden");
+        quantity.textContent = "1";
+      }
     };
   };
 
@@ -60,7 +77,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const renderAllProductContainers = () => productContainers.forEach(renderProducts);
+  const renderAllProductContainers = () =>
+    productContainers.forEach(renderProducts);
 
   const initSlider = (container) => {
     const prev = container.querySelector('[data-action="prev"]');
@@ -94,16 +112,27 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     };
 
-    prev?.addEventListener("click", () => renderSlide((current = (current - 1 + total) % total)));
-    next?.addEventListener("click", () => renderSlide((current = (current + 1) % total)));
-    dots.forEach((dot, i) => dot.addEventListener("click", () => renderSlide((current = i))));
+    prev?.addEventListener("click", () =>
+      renderSlide((current = (current - 1 + total) % total))
+    );
+    next?.addEventListener("click", () =>
+      renderSlide((current = (current + 1) % total))
+    );
+    dots.forEach((dot, i) =>
+      dot.addEventListener("click", () => renderSlide((current = i)))
+    );
 
     let touchStartX = 0;
-    container.addEventListener("touchstart", (e) => (touchStartX = e.changedTouches[0].screenX));
+    container.addEventListener(
+      "touchstart",
+      (e) => (touchStartX = e.changedTouches[0].screenX)
+    );
     container.addEventListener("touchend", (e) => {
       const deltaX = e.changedTouches[0].screenX - touchStartX;
       if (Math.abs(deltaX) > 50 && window.innerWidth < 1280) {
-        renderSlide((current = (current + (deltaX < 0 ? 1 : -1) + total) % total));
+        renderSlide(
+          (current = (current + (deltaX < 0 ? 1 : -1) + total) % total)
+        );
       }
     });
 
@@ -122,8 +151,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Formulário
   const form = document.querySelector("form");
-  const [inputName, inputEmail, inputCheckbox] = ["#inputName", "#inputEmail", "#inputCheckbox"]
-    .map((id) => document.querySelector(id));
+  const [inputName, inputEmail, inputCheckbox] = [
+    "#inputName",
+    "#inputEmail",
+    "#inputCheckbox",
+  ].map((id) => document.querySelector(id));
   const errorName = inputName.nextElementSibling;
   const errorEmail = inputEmail.nextElementSibling;
   const errorCheckbox = inputCheckbox.closest("div").querySelector("p");
@@ -144,7 +176,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     validateField(inputName, errorName, !inputName.value.trim());
-    validateField(inputEmail, errorEmail, !inputEmail.value.trim() || !inputEmail.checkValidity());
+    validateField(
+      inputEmail,
+      errorEmail,
+      !inputEmail.value.trim() || !inputEmail.checkValidity()
+    );
 
     if (!inputCheckbox.checked) {
       errorCheckbox.classList.remove("hidden");
@@ -171,7 +207,9 @@ document.addEventListener("DOMContentLoaded", () => {
     menuToggles.forEach(([, id]) => {
       document.querySelector(id).style.display = visible ? "block" : "none";
     });
-    document.querySelectorAll(".arrow").forEach(el => (el.style.transform = "rotate(0deg)"));
+    document
+      .querySelectorAll(".arrow")
+      .forEach((el) => (el.style.transform = "rotate(0deg)"));
   };
 
   menuToggles.forEach(([btnId, contentId]) => {
